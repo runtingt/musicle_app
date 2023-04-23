@@ -162,6 +162,7 @@ fun PianoOctave(
                             whiteKeySize = with(localDensity) {size.width.toDp()}
                         }
                 ) {
+                    // Use a second box so that the border doesn't cause jitter
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -171,46 +172,59 @@ fun PianoOctave(
                                     Color.LightGray
                                 )
                             )
-                    )
+                    ) {
+                        // Wrap note names in a column to align to bottom of keys
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Bottom,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            // Print names
+                            if (showNoteNames) {
+                                Text(
+                                    text = formatNoteName(index, octave, true),
+                                    color = Color.Black,
+                                    modifier = Modifier.padding(bottom = 2.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
         // Five black keys
         Row {
+            val blackKeySize = whiteKeySize / 1.75F
             val accidentalPaddings = arrayOf(
-                whiteKeySize * 0.75F + 1.00F.dp,
-                whiteKeySize * 0.50F + 0.00F.dp,
-                whiteKeySize * 1.50F + 0.00F.dp,
-                whiteKeySize * 0.50F + 0.00F.dp,
-                whiteKeySize * 0.50F + 0.00F.dp
+                (whiteKeySize - blackKeySize) * 1.50F + 4.00F.dp,
+                (whiteKeySize - blackKeySize) * 1.00F + 1.00F.dp,
+                (whiteKeySize - blackKeySize) * 3.00F + 7.00F.dp,
+                (whiteKeySize - blackKeySize) * 1.00F + 1.00F.dp,
+                (whiteKeySize - blackKeySize) * 1.00F + 1.00F.dp
             )
             repeat(5) { index ->
                 Spacer(modifier = Modifier.width(accidentalPaddings[index]))
                 Box(
                     modifier = Modifier
-                        .width(whiteKeySize / 2)
+                        .width(blackKeySize)
                         .height(255.dp)
                         .background(color = Color.Black)
-                )
-            }
-        }
-    }
-    if(showNoteNames) {
-        Row {
-            repeat(7) {
-                noteIndex ->
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.Bottom)
-                        .size(16.dp, 62.dp)
-                        .padding(end = 1.dp)
                 ) {
-                    // TODO
-                    val noteName = formatNoteName(noteIndex, octave)
-                    Text(
-                        text = noteName,
-                        fontSize = 8.sp
-                    )
+                    // Wrap note names in a column to align to bottom of keys
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Bottom,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // Print names
+                        if (showNoteNames) {
+                            Text(
+                                text = formatNoteName(index, octave, false),
+                                color = Color.White,
+                                modifier = Modifier.padding(bottom = 2.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -220,9 +234,15 @@ fun PianoOctave(
 // Note name
 fun formatNoteName(
     noteIndex: Int = 0,
-    octave: Int? = 0)
-        : String {
-    return noteIndex.toString() + octave.toString()
+    octave: Int? = 0,
+    isWhite: Boolean = true
+): String {
+    val labels = if(isWhite) {
+        arrayOf("C", "D", "E", "F", "G", "A", "B")
+    } else {
+        arrayOf("C#", "D#", "F#", "G#", "A#")
+    }
+    return labels[noteIndex] + octave.toString()
 }
 
 @Composable
