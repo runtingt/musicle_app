@@ -8,10 +8,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -118,18 +116,61 @@ fun MusicleHome() {
         Row(Modifier.weight(2f)) {
             PianoOctave(showNoteNames = true, octave = 5)
         }
+        // Buttons
+        Row {
+            // Backspace
+            Button(
+                onClick = { /*TODO*/ },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.White,
+                    contentColor = Color.Black,
+                    disabledBackgroundColor = Color.Gray,
+                    disabledContentColor = Color.LightGray
+                ),
+                shape = RoundedCornerShape(50),
+                border = BorderStroke(1.dp, Color.Black),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(2.dp),
+                elevation = null
+            ) {
+                Text(
+                    text = stringResource(id = R.string.backspace_text),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+            // Submit
+            Button(
+                onClick = { /*TODO*/ },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.White,
+                    contentColor = Color.Black,
+                    disabledBackgroundColor = Color.Gray,
+                    disabledContentColor = Color.LightGray
+                ),
+                shape = RoundedCornerShape(50),
+                border = BorderStroke(1.dp, Color.Black),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(2.dp),
+                elevation = null
+            ) {
+                Text(
+                    text = stringResource(id = R.string.submit_text),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        }
         // Guesses
         Row(Modifier.weight(2f)) {
             ComposableInfoCard(
-                title = "5",
-                description = "5",
+                title = "1",
+                description = "Guesses",
                 backgroundColor = Color.LightGray,
-                modifier = Modifier.weight(1f)
-            )
-            ComposableInfoCard(
-                title = "6",
-                description = "6",
-                backgroundColor = Color.DarkGray,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -145,7 +186,8 @@ fun PianoOctave(
 ) {
     Box {
         // Seven white keys
-        var whiteKeySize by remember { mutableStateOf(0.dp)}
+        var whiteKeyWidth by remember { mutableStateOf(0.dp)}
+        var whiteKeyHeight by remember { mutableStateOf(0.dp)}
         val localDensity = LocalDensity.current
         Row {
             repeat(7) { index ->
@@ -159,7 +201,8 @@ fun PianoOctave(
                         .fillMaxHeight()
                         .weight(1f)
                         .onSizeChanged { size ->
-                            whiteKeySize = with(localDensity) {size.width.toDp()}
+                            whiteKeyWidth = with(localDensity) { size.width.toDp() }
+                            whiteKeyHeight = with(localDensity) { size.height.toDp() }
                         }
                 ) {
                     // Use a second box so that the border doesn't cause jitter
@@ -194,20 +237,21 @@ fun PianoOctave(
         }
         // Five black keys
         Row {
-            val blackKeySize = whiteKeySize / 1.75F
+            val blackKeyWidth = whiteKeyWidth / 1.75F
+            val blackKeyHeight = whiteKeyHeight / 1.25F
             val accidentalPaddings = arrayOf(
-                (whiteKeySize - blackKeySize) * 1.50F + 4.00F.dp,
-                (whiteKeySize - blackKeySize) * 1.00F + 1.00F.dp,
-                (whiteKeySize - blackKeySize) * 3.00F + 7.00F.dp,
-                (whiteKeySize - blackKeySize) * 1.00F + 1.00F.dp,
-                (whiteKeySize - blackKeySize) * 1.00F + 1.00F.dp
+                (whiteKeyWidth - blackKeyWidth) * 1.50F + 4.00F.dp,
+                (whiteKeyWidth - blackKeyWidth) * 1.00F + 1.00F.dp,
+                (whiteKeyWidth - blackKeyWidth) * 3.00F + 7.00F.dp,
+                (whiteKeyWidth - blackKeyWidth) * 1.00F + 1.00F.dp,
+                (whiteKeyWidth - blackKeyWidth) * 1.00F + 1.00F.dp
             )
             repeat(5) { index ->
                 Spacer(modifier = Modifier.width(accidentalPaddings[index]))
                 Box(
                     modifier = Modifier
-                        .width(blackKeySize)
-                        .height(255.dp)
+                        .width(blackKeyWidth)
+                        .height(blackKeyHeight)
                         .background(color = Color.Black)
                 ) {
                     // Wrap note names in a column to align to bottom of keys
