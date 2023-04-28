@@ -219,7 +219,6 @@ fun PianoOctave(
     octave: Int? = 0,
     lastClicked: (String) -> Unit,
 ) {
-    var noteName: String
     Box {
         // Seven white keys
         var whiteKeyWidth by remember { mutableStateOf(0.dp)}
@@ -227,7 +226,6 @@ fun PianoOctave(
         val localDensity = LocalDensity.current
         Row {
             repeat(7) { index ->
-                noteName = formatNoteName(index, octave, true)
                 Box(
                     modifier = Modifier
                         .padding(
@@ -256,19 +254,25 @@ fun PianoOctave(
                                 )
                             )
                     ) {
-                        // Wrap note names in a column to align to bottom of keys
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Bottom,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        // Wrap note names in a scaffold to reduce jitter
+                        Scaffold(
+                            backgroundColor = Color.Transparent,
+                            modifier = Modifier.fillMaxSize()
                         ) {
-                            // Print names
-                            if (showNoteNames) {
-                                Text(
-                                    text = noteName,
-                                    color = Color.Black,
-                                    modifier = Modifier.padding(bottom = 2.dp)
-                                )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(it),
+                                verticalArrangement = Arrangement.Bottom,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                // Print names
+                                if (showNoteNames) {
+                                    Text(
+                                        text = formatNoteName(index, octave, true),
+                                        color = Color.Black
+                                    )
+                                }
                             }
                         }
                     }
@@ -287,7 +291,6 @@ fun PianoOctave(
                 (whiteKeyWidth - blackKeyWidth) * 1.00F + 1.00F.dp
             )
             repeat(5) { index ->
-                noteName = formatNoteName(index, octave, false)
                 Spacer(modifier = Modifier.width(accidentalPaddings[index]))
                 Box(
                     modifier = Modifier
@@ -297,19 +300,25 @@ fun PianoOctave(
                         .clickable { lastClicked(formatNoteName(index, octave, false)) }
                         .focusable(false)
                 ) {
-                    // Wrap note names in a column to align to bottom of keys
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Bottom,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    // Wrap note names in a scaffold to reduce jitter
+                    Scaffold(
+                        backgroundColor = Color.Transparent,
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        // Print names
-                        if (showNoteNames) {
-                            Text(
-                                text = noteName,
-                                color = Color.White,
-                                modifier = Modifier.padding(bottom = 2.dp)
-                            )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(it),
+                            verticalArrangement = Arrangement.Bottom,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            // Print names
+                            if (showNoteNames) {
+                                Text(
+                                    text = formatNoteName(index, octave, false),
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                 }
