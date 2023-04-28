@@ -7,6 +7,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -45,6 +47,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MusicleHome() {
     // Overall container
+    var lastClickedName: String? by remember { mutableStateOf(null) }
     Column(Modifier.fillMaxWidth()) {
         // Header row
         Row(Modifier.weight(.5f)) {
@@ -113,8 +116,8 @@ fun MusicleHome() {
             thickness = 2.dp
         )
         // Keyboard
-        Row(Modifier.weight(2f)) {
-            PianoOctave(showNoteNames = true, octave = 5)
+        Row(Modifier.weight(1.5f)) {
+            PianoOctave(showNoteNames = true, octave = 5, lastClicked = { lastClickedName = it })
         }
         // Buttons
         Row {
@@ -166,24 +169,57 @@ fun MusicleHome() {
             }
         }
         // Guesses
-        Row(Modifier.weight(2f)) {
-            ComposableInfoCard(
-                title = "1",
-                description = "Guesses",
-                backgroundColor = Color.LightGray,
-                modifier = Modifier.weight(1f)
-            )
+        Row(
+            modifier = Modifier
+                .weight(2f)
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ){
+            // Container for guesses
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                val numRows = 5
+                val numCols = 4
+                // Build grid
+                Row {
+                    for (i in 0 until numCols) {
+                        Column {
+                            for (j in 0 until numRows) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(2.dp)
+                                        .aspectRatio(1f)
+                                        .background(Color.LightGray, RoundedCornerShape(16.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    lastClickedName?.let {
+                                        Text(
+                                            text = it,
+                                            textAlign = TextAlign.Justify
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
-
 
 // Composable for a piano octave
 @Composable
 fun PianoOctave(
     showNoteNames: Boolean = false,
-    octave: Int? = 0
+    octave: Int? = 0,
+    lastClicked: (String) -> Unit,
 ) {
+    var noteName: String
     Box {
         // Seven white keys
         var whiteKeyWidth by remember { mutableStateOf(0.dp)}
@@ -191,6 +227,7 @@ fun PianoOctave(
         val localDensity = LocalDensity.current
         Row {
             repeat(7) { index ->
+                noteName = formatNoteName(index, octave, true)
                 Box(
                     modifier = Modifier
                         .padding(
@@ -204,6 +241,9 @@ fun PianoOctave(
                             whiteKeyWidth = with(localDensity) { size.width.toDp() }
                             whiteKeyHeight = with(localDensity) { size.height.toDp() }
                         }
+                        .clickable { lastClicked(formatNoteName(index, octave, true)) }
+                        .focusable(false)
+
                 ) {
                     // Use a second box so that the border doesn't cause jitter
                     Box(
@@ -225,7 +265,7 @@ fun PianoOctave(
                             // Print names
                             if (showNoteNames) {
                                 Text(
-                                    text = formatNoteName(index, octave, true),
+                                    text = noteName,
                                     color = Color.Black,
                                     modifier = Modifier.padding(bottom = 2.dp)
                                 )
@@ -247,12 +287,15 @@ fun PianoOctave(
                 (whiteKeyWidth - blackKeyWidth) * 1.00F + 1.00F.dp
             )
             repeat(5) { index ->
+                noteName = formatNoteName(index, octave, false)
                 Spacer(modifier = Modifier.width(accidentalPaddings[index]))
                 Box(
                     modifier = Modifier
                         .width(blackKeyWidth)
                         .height(blackKeyHeight)
                         .background(color = Color.Black)
+                        .clickable { lastClicked(formatNoteName(index, octave, false)) }
+                        .focusable(false)
                 ) {
                     // Wrap note names in a column to align to bottom of keys
                     Column(
@@ -263,7 +306,7 @@ fun PianoOctave(
                         // Print names
                         if (showNoteNames) {
                             Text(
-                                text = formatNoteName(index, octave, false),
+                                text = noteName,
                                 color = Color.White,
                                 modifier = Modifier.padding(bottom = 2.dp)
                             )
@@ -287,33 +330,6 @@ fun formatNoteName(
         arrayOf("C#", "D#", "F#", "G#", "A#")
     }
     return labels[noteIndex] + octave.toString()
-}
-
-@Composable
-private fun ComposableInfoCard(
-    title: String,
-    description: String,
-    backgroundColor: Color,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(color = backgroundColor)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = title,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        Text(
-            text = description,
-            textAlign = TextAlign.Justify
-        )
-    }
 }
 
 @Preview(showBackground = true)
