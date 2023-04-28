@@ -123,7 +123,7 @@ fun MusicleHome() {
         Row {
             // Backspace
             Button(
-                onClick = { /*TODO*/ },
+                onClick = { lastClickedName = null },
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = Color.White,
                     contentColor = Color.Black,
