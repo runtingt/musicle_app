@@ -390,7 +390,7 @@ fun PianoOctave(
                             lastClicked(formatNoteName(index, octave, false))
                             if (noteNumber <= 3) {
                                 guessesGrid[guessNumber][noteNumber] =
-                                    formatNoteName(index, octave, true)
+                                    formatNoteName(index, octave, false)
                             }
                             updateNoteNumber(minOf(noteNumber + 1, 4))
                         }
