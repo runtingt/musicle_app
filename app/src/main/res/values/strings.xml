@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Musicle</string>
+    <string name="backspace_text">Backspace</string>
+    <string name="submit_text">Submit</string>
+</resources>
