@@ -46,8 +46,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MusicleHome() {
-    // Overall container
     var lastClickedName: String? by remember { mutableStateOf(null) }
+    var noteNumber = 0
+
+    // Overall container
     Column(Modifier.fillMaxWidth()) {
         // Header row
         Row(Modifier.weight(.5f)) {
@@ -123,7 +125,7 @@ fun MusicleHome() {
         Row {
             // Backspace
             Button(
-                onClick = { lastClickedName = null },
+                onClick = {lastClickedName = null; noteNumber = maxOf(noteNumber - 1, 0)},
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = Color.White,
                     contentColor = Color.Black,
