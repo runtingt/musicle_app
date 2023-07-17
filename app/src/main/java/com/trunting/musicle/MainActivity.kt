@@ -1,6 +1,8 @@
 package com.trunting.musicle
 
 import android.os.Bundle
+import android.util.DisplayMetrics
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -44,6 +46,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trunting.musicle.ui.theme.MusicleTheme
@@ -186,7 +189,9 @@ fun MusicleHome() {
             }
             // Submit
             Button(
-                onClick = { validateGuess(
+                onClick = {
+                    Log.d("SUBMIT", "$guessesGrid")
+                    validateGuess(
                     guessNumber = guessNumber,
                     noteNumber = noteNumber,
                     updateGuessNumber = { guessNumber = it },
@@ -301,18 +306,32 @@ fun PianoOctave(
                         .fillMaxHeight()
                         .weight(1f)
                         .onSizeChanged { size ->
-                            whiteKeyWidth = with(localDensity) { size.width.toDp() }
-                            whiteKeyHeight = with(localDensity) { size.height.toDp() }
+                            val newWidth = with(localDensity) { size.width.toDp() }
+                            val newHeight = with(localDensity) { size.height.toDp() }
+
+                            // Have to test both positive and negative cases as abs can't take
+                            // dp values
+                            if ((whiteKeyWidth - newWidth) > 3.dp ||
+                                (whiteKeyHeight - newHeight) > 3.dp ||
+                                (newWidth - whiteKeyWidth) > 3.dp ||
+                                (newHeight - whiteKeyHeight) > 3.dp
+                            ) {
+                                whiteKeyWidth = newWidth
+                                whiteKeyHeight = newHeight
+                            }
                         }
                         .clickable {
                             lastClicked(formatNoteName(index, octave, true))
-                            guessesGrid[guessNumber][minOf(noteNumber, 3)] =
-                                formatNoteName(index, octave, true)
+                            if (noteNumber <= 3) {
+                                guessesGrid[guessNumber][noteNumber] =
+                                    formatNoteName(index, octave, true)
+                            }
                             updateNoteNumber(minOf(noteNumber + 1, 4))
                         }
                         .focusable(false)
 
                 ) {
+                    Log.d("KEYS", "$whiteKeyWidth")
                     // Use a second box so that the border doesn't cause jitter
                     Box(
                         modifier = Modifier
@@ -356,7 +375,7 @@ fun PianoOctave(
             val accidentalPaddings = arrayOf(
                 (whiteKeyWidth - blackKeyWidth) * 1.50F + 4.00F.dp,
                 (whiteKeyWidth - blackKeyWidth) * 1.00F + 1.00F.dp,
-                (whiteKeyWidth - blackKeyWidth) * 3.00F + 7.00F.dp,
+                (whiteKeyWidth - blackKeyWidth) * 3.00F + 10.00F.dp,
                 (whiteKeyWidth - blackKeyWidth) * 1.00F + 1.00F.dp,
                 (whiteKeyWidth - blackKeyWidth) * 1.00F + 1.00F.dp
             )
@@ -369,8 +388,10 @@ fun PianoOctave(
                         .background(color = Color.Black)
                         .clickable {
                             lastClicked(formatNoteName(index, octave, false))
-                            guessesGrid[guessNumber][minOf(noteNumber, 3)] =
-                                formatNoteName(index, octave, false)
+                            if (noteNumber <= 3) {
+                                guessesGrid[guessNumber][noteNumber] =
+                                    formatNoteName(index, octave, true)
+                            }
                             updateNoteNumber(minOf(noteNumber + 1, 4))
                         }
                         .focusable(false)
