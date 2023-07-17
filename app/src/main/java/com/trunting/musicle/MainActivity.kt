@@ -9,10 +9,31 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Divider
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,8 +67,13 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MusicleHome() {
+    val numRows = 5
+    val numCols = 4
+    val guessesGrid: MutableList<MutableList<String>> =
+        remember { MutableList(numRows) { MutableList(numCols) { "" } } }
     var lastClickedName: String? by remember { mutableStateOf(null) }
-    var noteNumber = 0
+    var guessNumber: Int by remember { mutableStateOf(0) }
+    var noteNumber: Int by remember { mutableStateOf(0) }
 
     // Overall container
     Column(Modifier.fillMaxWidth()) {
@@ -119,13 +145,25 @@ fun MusicleHome() {
         )
         // Keyboard
         Row(Modifier.weight(1.5f)) {
-            PianoOctave(showNoteNames = true, octave = 5, lastClicked = { lastClickedName = it })
+            PianoOctave(
+                showNoteNames = true,
+                octave = 5,
+                lastClicked = { lastClickedName = it },
+                guessNumber = guessNumber,
+                noteNumber = noteNumber,
+                guessesGrid = guessesGrid,
+                updateNoteNumber = { noteNumber = it }
+            )
         }
         // Buttons
         Row {
             // Backspace
             Button(
-                onClick = {lastClickedName = null; noteNumber = maxOf(noteNumber - 1, 0)},
+                onClick = {
+                    lastClickedName = null
+                    noteNumber = maxOf(noteNumber - 1, 0)
+                    guessesGrid[guessNumber][noteNumber] = ""
+                },
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = Color.White,
                     contentColor = Color.Black,
@@ -148,7 +186,12 @@ fun MusicleHome() {
             }
             // Submit
             Button(
-                onClick = { /*TODO*/ },
+                onClick = { validateGuess(
+                    guessNumber = guessNumber,
+                    noteNumber = noteNumber,
+                    updateGuessNumber = { guessNumber = it },
+                    updateNoteNumber = {noteNumber = it}
+                ) },
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = Color.White,
                     contentColor = Color.Black,
@@ -183,8 +226,6 @@ fun MusicleHome() {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                val numRows = 5
-                val numCols = 4
                 // Build grid
                 Row {
                     for (i in 0 until numCols) {
@@ -198,12 +239,10 @@ fun MusicleHome() {
                                         .background(Color.LightGray, RoundedCornerShape(16.dp)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    lastClickedName?.let {
-                                        Text(
-                                            text = it,
-                                            textAlign = TextAlign.Justify
-                                        )
-                                    }
+                                    Text(
+                                        text = guessesGrid[j][i],
+                                        textAlign = TextAlign.Justify
+                                    )
                                 }
                             }
                         }
@@ -214,12 +253,36 @@ fun MusicleHome() {
     }
 }
 
+// Validate the submitted guess
+fun validateGuess(
+    guessNumber: Int,
+    noteNumber: Int,
+    updateGuessNumber: (Int) -> Unit,
+    updateNoteNumber: (Int) -> Unit
+) {
+    // Each guess must have 4 notes in it
+    if ( noteNumber == 4 ) {
+        if ( guessNumber < 4 ) {  // Normal case
+            // Reset and increment
+            updateGuessNumber(guessNumber + 1)
+            updateNoteNumber(0)
+        } else if ( guessNumber == 4 ) {  // End case
+            // Reset
+            updateNoteNumber(0)
+        }
+    }
+}
+
 // Composable for a piano octave
 @Composable
 fun PianoOctave(
     showNoteNames: Boolean = false,
     octave: Int? = 0,
     lastClicked: (String) -> Unit,
+    guessNumber: Int,
+    noteNumber: Int,
+    guessesGrid: MutableList<MutableList<String>>,
+    updateNoteNumber: (Int) -> Unit,
 ) {
     Box {
         // Seven white keys
@@ -241,7 +304,12 @@ fun PianoOctave(
                             whiteKeyWidth = with(localDensity) { size.width.toDp() }
                             whiteKeyHeight = with(localDensity) { size.height.toDp() }
                         }
-                        .clickable { lastClicked(formatNoteName(index, octave, true)) }
+                        .clickable {
+                            lastClicked(formatNoteName(index, octave, true))
+                            guessesGrid[guessNumber][minOf(noteNumber, 3)] =
+                                formatNoteName(index, octave, true)
+                            updateNoteNumber(minOf(noteNumber + 1, 4))
+                        }
                         .focusable(false)
 
                 ) {
@@ -299,7 +367,12 @@ fun PianoOctave(
                         .width(blackKeyWidth)
                         .height(blackKeyHeight)
                         .background(color = Color.Black)
-                        .clickable { lastClicked(formatNoteName(index, octave, false)) }
+                        .clickable {
+                            lastClicked(formatNoteName(index, octave, false))
+                            guessesGrid[guessNumber][minOf(noteNumber, 3)] =
+                                formatNoteName(index, octave, false)
+                            updateNoteNumber(minOf(noteNumber + 1, 4))
+                        }
                         .focusable(false)
                 ) {
                     // Wrap note names in a scaffold to reduce jitter
