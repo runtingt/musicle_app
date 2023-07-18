@@ -1,7 +1,6 @@
 package com.trunting.musicle
 
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -46,10 +45,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trunting.musicle.ui.theme.MusicleTheme
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,7 +80,11 @@ fun MusicleHome() {
     // Overall container
     Column(Modifier.fillMaxWidth()) {
         // Header row
-        Row(Modifier.weight(.5f)) {
+        Row(
+            modifier = Modifier
+                .weight(.5f)
+                .background(MaterialTheme.colors.secondary)
+        ) {
             // Icon
             Column(
                 modifier = Modifier
@@ -106,7 +109,8 @@ fun MusicleHome() {
                     text = stringResource(id = R.string.app_name),
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
                 )
             }
             // Stats and volume
@@ -246,7 +250,8 @@ fun MusicleHome() {
                                 ) {
                                     Text(
                                         text = guessesGrid[j][i],
-                                        textAlign = TextAlign.Justify
+                                        textAlign = TextAlign.Justify,
+                                        color = Color.Black
                                     )
                                 }
                             }
