@@ -1,7 +1,7 @@
 package com.trunting.musicle
 
+import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -31,6 +31,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,7 +50,55 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trunting.musicle.ui.theme.MusicleTheme
+import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
+// Chord and label data structure
+data class Chord(
+    val chordPattern: Array<String>,
+    val label: String
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Chord
+
+        if (!chordPattern.contentEquals(other.chordPattern)) return false
+        if (label != other.label) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = chordPattern.contentHashCode()
+        result = 31 * result + label.hashCode()
+        return result
+    }
+}
+
+// Cache for the chords
+class ChordRepository(private val context: Context) {
+    private val gson = Gson()
+    private var chords: List<Chord>? = null
+
+    // Load chords from file if not loaded yet
+    suspend fun getChords(): List<Chord> {
+        if (chords == null) {
+            chords = loadChordsFromJson()
+        }
+        return chords ?: emptyList()
+    }
+
+    // Load chords from JSON
+    private suspend fun loadChordsFromJson(): List<Chord> {
+        val loadedChords = withContext(Dispatchers.IO) {
+            context.assets.open("chords.json").bufferedReader().use { it.readText() }
+        }
+        return gson.fromJson(loadedChords, Array<Chord>::class.java).toList()
+    }
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,7 +110,12 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    MusicleHome()
+                    // Get chord repository
+                    val context = LocalContext.current
+                    val chordRepository = ChordRepository(context)
+
+                    // Launch home layout
+                    MusicleHome(chordRepository)
                 }
             }
         }
@@ -68,7 +123,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MusicleHome() {
+fun MusicleHome(
+    chordRepository: ChordRepository
+) {
     val numRows = 5
     val numCols = 4
     val guessesGrid: MutableList<MutableList<String>> =
@@ -76,6 +133,13 @@ fun MusicleHome() {
     var lastClickedName: String? by remember { mutableStateOf(null) }
     var guessNumber: Int by remember { mutableStateOf(0) }
     var noteNumber: Int by remember { mutableStateOf(0) }
+
+    // Load questions asynchronously
+    val loadedChords = remember { mutableStateOf(emptyList<Chord>()) }
+    LaunchedEffect(Unit) {
+        val chords = chordRepository.getChords()
+        loadedChords.value = chords
+    }
 
     // Overall container
     Column(Modifier.fillMaxWidth()) {
@@ -194,7 +258,6 @@ fun MusicleHome() {
             // Submit
             Button(
                 onClick = {
-                    Log.d("SUBMIT", "$guessesGrid")
                     validateGuess(
                     guessNumber = guessNumber,
                     noteNumber = noteNumber,
@@ -336,7 +399,6 @@ fun PianoOctave(
                         .focusable(false)
 
                 ) {
-                    Log.d("KEYS", "$whiteKeyWidth")
                     // Use a second box so that the border doesn't cause jitter
                     Box(
                         modifier = Modifier
@@ -446,6 +508,10 @@ fun formatNoteName(
 @Composable
 fun DefaultPreview() {
     MusicleTheme {
-        MusicleHome()
+        // Get chord repository
+        val context = LocalContext.current
+        val chordRepository = ChordRepository(context)
+
+        MusicleHome(chordRepository)
     }
 }
